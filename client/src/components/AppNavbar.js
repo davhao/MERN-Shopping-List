@@ -1,5 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { Collapse, Navbar, NavbarToggler, NavbarBrand, Nav, NavItem, NavLink, Container } from 'reactstrap';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import RegisterModal from './auth/RegisterModal';
+import Logout from './auth/Logout';
+import Login from './auth/LoginModal';
 
 class AppNavbar extends Component {
 	constructor(props) {
@@ -9,6 +14,11 @@ class AppNavbar extends Component {
 		};
 		this.wrapper = React.createRef();
 	}
+
+	static propTypes = {
+		auth : PropTypes.object.isRequired
+	};
+
 	toggle = () => {
 		this.setState({
 			isOpen : !this.state.isOpen
@@ -16,6 +26,32 @@ class AppNavbar extends Component {
 	};
 
 	render() {
+		const { isAuthenticated, user } = this.props.auth;
+
+		const authLinks = (
+			<Fragment>
+				<NavItem>
+					<span className="navbar-text mr-3">
+						<strong>{user ? `Welcome ${user.name}` : ''}</strong>
+					</span>
+				</NavItem>
+				<NavItem>
+					<Logout />
+				</NavItem>
+			</Fragment>
+		);
+
+		const guestLinks = (
+			<Fragment>
+				<NavItem>
+					<RegisterModal />
+				</NavItem>
+				<NavItem>
+					<Login />
+				</NavItem>
+			</Fragment>
+		);
+
 		return (
 			<div ref={this.wrapper}>
 				{this.props.children}
@@ -25,9 +61,7 @@ class AppNavbar extends Component {
 						<NavbarToggler onClick={this.toggle} />
 						<Collapse isOpen={this.state.isOpen} navbar>
 							<Nav className="ml-auto" navbar>
-								<NavItem>
-									<NavLink href="https://github.com/davhao">Github</NavLink>
-								</NavItem>
+								{isAuthenticated ? authLinks : guestLinks}
 							</Nav>
 						</Collapse>
 					</Container>
@@ -36,4 +70,9 @@ class AppNavbar extends Component {
 		);
 	}
 }
-export default AppNavbar;
+
+const mapStateToProps = (state) => ({
+	auth : state.auth
+});
+
+export default connect(mapStateToProps, null)(AppNavbar);
